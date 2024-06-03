@@ -238,7 +238,7 @@ class KalkulatorKalori:
             
             st.write(f"Kebutuhan kalori harian Anda adalah {bmr:.2f} kkal")
 
-# Halaman bantuan
+# Halaman rekomendasi makanan
 def rekomendasi_page():
     st.title("Rekomendasi Makanan")
     st.write("Masukkan data kebutuhan nutrisi harian Anda untuk mendapatkan rekomendasi makanan.")
