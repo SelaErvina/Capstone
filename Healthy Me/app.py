@@ -6,12 +6,13 @@ import requests
 import re
 from PIL import Image
 import sqlite3
+import pandas as pd
 
 # Fungsi untuk memuat model machine learning
 def load_model():
     with open("CP_kmeans.pkl", "rb") as file:
-        CP_kmeans = pickle.load(file)
-    return CP_kmeans
+        kmeans = pickle.load(file)
+    return kmeans
 
 # CSS untuk latar belakang, gaya, dan animasi
 def load_css():
@@ -240,7 +241,55 @@ class KalkulatorKalori:
 # Halaman bantuan
 def rekomendasi_page():
     st.title("Rekomendasi Makanan")
-    st.write("Ini adalah halaman rekomendasi makanan. Bagaimana kami bisa membantumu?")
+    st.write("Masukkan data kebutuhan nutrisi harian Anda untuk mendapatkan rekomendasi makanan.")
+    daily_calories = st.number_input("Daily Calories (kcal)")
+    proteins = st.number_input("Proteins (grams)")
+    fat = st.number_input("Fat (grams)")
+
+    if st.button("Dapatkan Rekomendasi"):
+        if daily_calories > 0 and proteins > 0 and fat > 0:
+            kmeans = load_model()
+            # Menggunakan model kmeans untuk prediksi rekomendasi makanan
+            user_input = pd.DataFrame({
+                'calories': [daily_calories],
+                'proteins': [proteins],
+                'fat': [fat]
+            })
+            cluster = kmeans.predict(user_input)
+            
+            # Misalkan kita memiliki data makanan berdasarkan cluster yang sudah ditentukan
+            food_recommendations = {
+                0: [
+                    {"name": "Salad sayuran", "calories": 150, "proteins": 5, "fat": 10},
+                    {"name": "Grilled chicken", "calories": 300, "proteins": 35, "fat": 15},
+                    {"name": "Smoothie buah", "calories": 200, "proteins": 2, "fat": 1}
+                ],
+                1: [
+                    {"name": "Oatmeal dengan buah", "calories": 250, "proteins": 6, "fat": 4},
+                    {"name": "Yogurt", "calories": 100, "proteins": 10, "fat": 5},
+                    {"name": "Grilled fish", "calories": 350, "proteins": 40, "fat": 20}
+                ],
+                2: [
+                    {"name": "Quinoa bowl", "calories": 300, "proteins": 8, "fat": 10},
+                    {"name": "Tofu stir-fry", "calories": 350, "proteins": 20, "fat": 15},
+                    {"name": "Protein shake", "calories": 200, "proteins": 25, "fat": 5}
+                ],
+                3: [
+                    {"name": "Pasta dengan sayuran", "calories": 400, "proteins": 12, "fat": 18},
+                    {"name": "Baked salmon", "calories": 450, "proteins": 50, "fat": 25},
+                    {"name": "Fruit salad", "calories": 150, "proteins": 1, "fat": 0}
+                ]
+            }
+            
+            recommendations = food_recommendations.get(cluster[0], [])
+            if recommendations:
+                st.write("Rekomendasi makanan untuk Anda:")
+                for food in recommendations:
+                    st.write(f"- {food['name']} (Kalori: {food['calories']} kcal, Protein: {food['proteins']} g, Lemak: {food['fat']} g)")
+            else:
+                st.write("Tidak ada rekomendasi yang tersedia.")
+        else:
+            st.error("Mohon masukkan nilai kalori, protein, dan lemak yang valid.")
 
 # Fungsi untuk menampilkan form penambahan artikel dan menyimpan artikel
 def add_article_page():
